@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Online Compiler - Interactive Execution</title>
+    <style>
+        :root {
+            --bg-primary: #121826;
+            --bg-secondary: #1a2234;
+            --bg-panel: #212c42;
+            --border-color: #2e3c5a;
+            --text-primary: #f0f4f8;
+            --text-secondary: #94a3b8;
+            --accent-green: #10b981;
+            --accent-blue: #3b82f6;
+            --accent-red: #ef4444;
+            --accent-yellow: #f59e0b;
+            --terminal-bg: #0b0f19;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            background-color: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-color);
+            padding: 12px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .header-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .header-title span {
+            color: var(--accent-blue);
+        }
+
+        .header-controls {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .input-group {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        input, select {
+            background-color: var(--bg-panel);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        input:focus, select:focus {
+            border-color: var(--accent-blue);
+        }
+
+        .ws-url-input {
+            width: 260px;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 7px 16px;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-run {
+            background-color: var(--accent-green);
+            color: #fff;
+        }
+
+        .btn-run:hover:not(:disabled) {
+            background-color: #059669;
+        }
+
+        .btn-stop {
+            background-color: var(--accent-red);
+            color: #fff;
+        }
+
+        .btn-stop:hover:not(:disabled) {
+            background-color: #dc2626;
+        }
+
+        .btn-clear {
+            background-color: var(--bg-panel);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-clear:hover {
+            color: var(--text-primary);
+            border-color: var(--text-secondary);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            background-color: #334155;
+            color: #cbd5e1;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: #94a3b8;
+        }
+
+        .status-badge.ready .status-dot { background-color: var(--accent-green); }
+        .status-badge.compiling .status-dot { background-color: var(--accent-yellow); }
+        .status-badge.running .status-dot { background-color: var(--accent-blue); animation: pulse 1.2s infinite; }
+        .status-badge.completed .status-dot { background-color: var(--accent-green); }
+        .status-badge.failed .status-dot { background-color: var(--accent-red); }
+        .status-badge.timeout .status-dot { background-color: var(--accent-yellow); }
+
+        @keyframes pulse {
+            0% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.4; transform: scale(1.3); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+
+        main {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            padding: 16px;
+            flex: 1;
+            overflow: hidden;
+            height: calc(100vh - 65px);
+        }
+
+        @media (max-width: 900px) {
+            main {
+                grid-template-columns: 1fr;
+                height: auto;
+            }
+        }
+
+        .panel {
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .panel-header {
+            background-color: var(--bg-panel);
+            padding: 8px 16px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+
+        .editor-container {
+            flex: 1;
+            position: relative;
+            display: flex;
+        }
+
+        textarea.code-editor {
+            width: 100%;
+            height: 100%;
+            background-color: var(--terminal-bg);
+            color: #f8fafc;
+            border: none;
+            outline: none;
+            resize: none;
+            padding: 16px;
+            font-family: 'Consolas', 'Courier New', monospace;
+            font-size: 0.95rem;
+            line-height: 1.5;
+            tab-size: 4;
+            white-space: pre;
+            overflow-wrap: normal;
+            overflow-x: auto;
+        }
+
+        .terminal-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background-color: var(--terminal-bg);
+            overflow: hidden;
+        }
+
+        .terminal-output {
+            flex: 1;
+            padding: 14px 16px;
+            overflow-y: auto;
+            font-family: 'Consolas', 'Courier New', monospace;
+            font-size: 0.9rem;
+            line-height: 1.45;
+            white-space: pre-wrap;
+            word-break: break-all;
+            user-select: text;
+        }
+
+        .log-stdout {
+            color: #f1f5f9;
+        }
+
+        .log-stderr {
+            color: #f87171;
+            font-weight: 500;
+        }
+
+        .log-status {
+            color: #60a5fa;
+            font-style: italic;
+        }
+
+        .log-input-echo {
+            color: #34d399;
+            font-weight: 600;
+        }
+
+        .log-error {
+            color: #ef4444;
+            font-weight: 700;
+        }
+
+        .log-timeout {
+            color: #fbbf24;
+            font-weight: 700;
+        }
+
+        .log-exit {
+            color: #94a3b8;
+            border-top: 1px dashed var(--border-color);
+            margin-top: 8px;
+            padding-top: 8px;
+        }
+
+        .terminal-input-bar {
+            display: flex;
+            gap: 8px;
+            padding: 10px 12px;
+            background-color: var(--bg-panel);
+            border-top: 1px solid var(--border-color);
+            align-items: center;
+        }
+
+        .terminal-input-bar span {
+            font-family: monospace;
+            font-weight: 700;
+            color: var(--accent-green);
+        }
+
+        .stdin-input {
+            flex: 1;
+            background-color: var(--terminal-bg);
+            border: 1px solid var(--border-color);
+            color: #fff;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-family: 'Consolas', monospace;
+            font-size: 0.9rem;
+        }
+
+        .stdin-input:focus {
+            border-color: var(--accent-green);
+        }
+
+        .btn-send {
+            background-color: var(--accent-blue);
+            color: #fff;
+            padding: 8px 14px;
+        }
+
+        .btn-send:hover:not(:disabled) {
+            background-color: #2563eb;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="header-title">
+            <span>⚡</span> Online Compiler <span>[Interactive WebSocket]</span>
+        </div>
+
+        <div class="header-controls">
+            <div class="input-group">
+                <label for="languageSelect">Language:</label>
+                <select id="languageSelect">
+                    <option value="java" selected>Java (15.0.2)</option>
+                    <option value="python">Python (3.12.0)</option>
+                    <option value="c">C (10.2.0)</option>
+                    <option value="cpp">C++ (10.2.0)</option>
+                    <option value="javascript">JavaScript (Node 18.15.0)</option>
+                    <option value="go">Go (1.16.2)</option>
+                </select>
+            </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            <div class="input-group">
+                <label for="wsUrlInput">WebSocket URL:</label>
+                <input type="text" id="wsUrlInput" class="ws-url-input" value="ws://localhost:8080/api/v1/execute">
+            </div>
+
+            <div id="statusBadge" class="status-badge ready">
+                <div class="status-dot"></div>
+                <span id="statusText">Ready</span>
+            </div>
+
+            <button id="runBtn" class="btn btn-run">▶ Run</button>
+            <button id="stopBtn" class="btn btn-stop" disabled>⏹ Stop</button>
+            <button id="clearBtn" class="btn btn-clear">Clear</button>
+        </div>
+    </header>
+
+    <main>
+        <!-- Left: Code Editor -->
+        <section class="panel">
+            <div class="panel-header">
+                <span id="fileNameLabel">Main.java</span>
+                <span id="editorInfo">Type your code here</span>
+            </div>
+            <div class="editor-container">
+                <textarea id="codeEditor" class="code-editor" spellcheck="false"></textarea>
+            </div>
+        </section>
+
+        <!-- Right: Interactive Terminal -->
+        <section class="panel">
+            <div class="panel-header">
+                <span>Console Output</span>
+                <span id="executionIdLabel"></span>
+            </div>
+            <div class="terminal-container">
+                <div id="terminalOutput" class="terminal-output">
+<span class="log-status">Ready. Click '▶ Run' to start interactive execution.</span>
+                </div>
+
+                <div class="terminal-input-bar">
+                    <span>stdin &gt;</span>
+                    <input type="text" id="stdinInput" class="stdin-input" placeholder="Type input here and press Enter..." disabled>
+                    <button id="sendInputBtn" class="btn btn-send" disabled>Send</button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // Preset boilerplates for languages
+        const BOILERPLATES = {
+            java: {
+                version: "15.0.2",
+                filename: "Main.java",
+                code: `import java.util.Scanner;
+
+public class Main {
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+
+        System.out.println("=== Java Interactive Compiler ===");
+        System.out.println("Enter your name:");
+
+        String name = sc.nextLine();
+
+        System.out.println("Welcome, " + name + "!");
+        System.out.println("Enter your age:");
+
+        int age = sc.nextInt();
+
+        System.out.println("Your age is: " + age);
+        System.out.println("Program finished successfully.");
+    }
+}`
+            },
+            python: {
+                version: "3.12.0",
+                filename: "main.py",
+                code: `print("=== Python Interactive Compiler ===")
+name = input("Enter your name: ")
+print(f"Hello, {name}!")
+age = int(input("Enter your age: "))
+print(f"You will be {age + 1} next year.")
+`
+            },
+            cpp: {
+                version: "10.2.0",
+                filename: "main.cpp",
+                code: `#include <iostream>
+#include <string>
+
+int main() {
+    std::cout << "=== C++ Interactive Compiler ===" << std::endl;
+    std::cout << "Enter your name: ";
+    std::string name;
+    std::getline(std::cin, name);
+    std::cout << "Welcome, " << name << "!" << std::endl;
+    std::cout << "Enter your age: ";
+    int age;
+    std::cin >> age;
+    std::cout << "Your age is " << age << std::endl;
+    return 0;
+}
+`
+            },
+            c: {
+                version: "10.2.0",
+                filename: "main.c",
+                code: `#include <stdio.h>
+
+int main() {
+    char name[100];
+    int age;
+    printf("=== C Interactive Compiler ===\\n");
+    printf("Enter your name: ");
+    if (scanf("%s", name) == 1) {
+        printf("Hello %s!\\n", name);
+    }
+    printf("Enter your age: ");
+    if (scanf("%d", &age) == 1) {
+        printf("Age: %d\\n", age);
+    }
+    return 0;
+}
+`
+            },
+            javascript: {
+                version: "18.15.0",
+                filename: "index.js",
+                code: `const readline = require('readline');
+
+const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout
+});
+
+console.log("=== Node.js Interactive Compiler ===");
+rl.question("Enter your name: ", (name) => {
+    console.log(\`Hello, \${name}!\`);
+    rl.question("Enter your age: ", (age) => {
+        console.log(\`Your age is: \${age}\`);
+        rl.close();
+    });
+});
+`
+            },
+            go: {
+                version: "1.16.2",
+                filename: "main.go",
+                code: `package main
+
+import (
+    "fmt"
+)
+
+func main() {
+    var name string
+    var age int
+    fmt.Println("=== Go Interactive Compiler ===")
+    fmt.Print("Enter your name: ")
+    fmt.Scan(&name)
+    fmt.Printf("Hello %s!\\n", name)
+    fmt.Print("Enter your age: ")
+    fmt.Scan(&age)
+    fmt.Printf("Your age is %d\\n", age)
+}
+`
+            }
+        };
+
+        // DOM elements
+        const languageSelect = document.getElementById("languageSelect");
+        const wsUrlInput = document.getElementById("wsUrlInput");
+        const codeEditor = document.getElementById("codeEditor");
+        const fileNameLabel = document.getElementById("fileNameLabel");
+        const runBtn = document.getElementById("runBtn");
+        const stopBtn = document.getElementById("stopBtn");
+        const clearBtn = document.getElementById("clearBtn");
+        const terminalOutput = document.getElementById("terminalOutput");
+        const stdinInput = document.getElementById("stdinInput");
+        const sendInputBtn = document.getElementById("sendInputBtn");
+        const statusBadge = document.getElementById("statusBadge");
+        const statusText = document.getElementById("statusText");
+        const executionIdLabel = document.getElementById("executionIdLabel");
+
+        let socket = null;
+        let currentExecutionId = null;
+
+        // Auto-detect WebSocket URL if served from HTTP backend
+        if (window.location.protocol === "http:" || window.location.protocol === "https:") {
+            const wsProtocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+            wsUrlInput.value = `${wsProtocol}//${window.location.host}/api/v1/execute`;
+        }
+
+        // Initialize editor with Java boilerplate
+        function loadLanguage(lang) {
+            const config = BOILERPLATES[lang] || BOILERPLATES.java;
+            fileNameLabel.textContent = config.filename;
+            codeEditor.value = config.code;
+        }
+
+        languageSelect.addEventListener("change", (e) => {
+            loadLanguage(e.target.value);
+        });
+
+        loadLanguage("java");
+
+        // Allow Tab key inside textarea
+        codeEditor.addEventListener("keydown", function(e) {
+            if (e.key === "Tab") {
+                e.preventDefault();
+                const start = this.selectionStart;
+                const end = this.selectionEnd;
+                this.value = this.value.substring(0, start) + "    " + this.value.substring(end);
+                this.selectionStart = this.selectionEnd = start + 4;
+            }
+        });
+
+        function setStatus(status, className = null) {
+            statusText.textContent = status;
+            statusBadge.className = "status-badge " + (className || status.toLowerCase());
+        }
+
+        function appendLog(text, className) {
+            const span = document.createElement("span");
+            span.className = className;
+            span.textContent = text;
+            terminalOutput.appendChild(span);
+            terminalOutput.scrollTop = terminalOutput.scrollHeight;
+        }
+
+        function clearTerminal() {
+            terminalOutput.innerHTML = "";
+            executionIdLabel.textContent = "";
+        }
+
+        clearBtn.addEventListener("click", clearTerminal);
+
+        // Start Execution
+        runBtn.addEventListener("click", () => {
+            clearTerminal();
+            const lang = languageSelect.value;
+            const config = BOILERPLATES[lang] || { version: "*", filename: "Main." + lang };
+            const code = codeEditor.value;
+            const wsUrl = wsUrlInput.value.trim();
+
+            if (!code.trim()) {
+                appendLog("Error: Code editor is empty.\n", "log-error");
+                return;
+            }
+
+            appendLog(`Connecting to ${wsUrl}...\n`, "log-status");
+            setStatus("Connecting...", "compiling");
+            runBtn.disabled = true;
+            stopBtn.disabled = false;
+
+            try {
+                if (socket) {
+                    socket.close();
+                }
+
+                socket = new WebSocket(wsUrl);
+
+                socket.onopen = () => {
+                    appendLog("Connected. Initializing execution...\n", "log-status");
+                    setStatus("Initializing", "compiling");
+
+                    const startMsg = {
+                        type: "START",
+                        language: lang,
+                        version: config.version,
+                        filename: config.filename,
+                        code: code
+                    };
+
+                    socket.send(JSON.stringify(startMsg));
+                };
+
+                socket.onmessage = (event) => {
+                    handleServerMessage(event.data);
+                };
+
+                socket.onerror = (err) => {
+                    appendLog("\nWebSocket Error: Failed to connect or connection dropped.\n", "log-error");
+                    setStatus("Error", "failed");
+                    resetControls();
+                };
+
+                socket.onclose = (event) => {
+                    if (event.code !== 1000) {
+                        appendLog(`\nWebSocket Closed (code: ${event.code}).\n`, "log-status");
+                    }
+                    resetControls();
+                };
+
+            } catch (err) {
+                appendLog(`Connection exception: ${err.message}\n`, "log-error");
+                resetControls();
+            }
+        });
+
+        // Handle Messages from Backend
+        function handleServerMessage(rawData) {
+            try {
+                const msg = JSON.parse(rawData);
+
+                if (msg.executionId && !currentExecutionId) {
+                    currentExecutionId = msg.executionId;
+                    executionIdLabel.textContent = `ID: ${currentExecutionId}`;
+                }
+
+                switch (msg.type) {
+                    case "STATUS":
+                        handleStatusMessage(msg);
+                        break;
+                    case "OUTPUT":
+                        handleOutputMessage(msg);
+                        break;
+                    case "INPUT":
+                        // Echo of input sent
+                        break;
+                    case "EXIT":
+                        handleExitMessage(msg);
+                        break;
+                    case "TIMEOUT":
+                        appendLog(`\n[TIMEOUT] ${msg.message || "Execution timed out."}\n`, "log-timeout");
+                        setStatus("Timeout", "timeout");
+                        resetControls();
+                        break;
+                    case "ERROR":
+                        appendLog(`\n[ERROR] ${msg.message || "Execution error"}\n`, "log-error");
+                        setStatus("Failed", "failed");
+                        resetControls();
+                        break;
+                    default:
+                        appendLog(rawData + "\n", "log-stdout");
+                }
+            } catch (e) {
+                appendLog(rawData + "\n", "log-stdout");
+            }
+        }
+
+        function handleStatusMessage(msg) {
+            const status = msg.status || "";
+            if (msg.message) {
+                appendLog(`[STATUS] ${msg.message}\n`, "log-status");
+            }
+
+            if (status === "COMPILING") {
+                setStatus("Compiling", "compiling");
+            } else if (status === "RUNNING") {
+                setStatus("Running", "running");
+                enableStdin();
+            } else if (status === "COMPLETED") {
+                setStatus("Completed", "completed");
+                resetControls();
+            } else if (status === "FAILED") {
+                setStatus("Failed", "failed");
+                resetControls();
+            } else if (status === "CANCELLED") {
+                setStatus("Cancelled", "failed");
+                resetControls();
+            }
+        }
+
+        function handleOutputMessage(msg) {
+            const streamClass = msg.stream === "stderr" ? "log-stderr" : "log-stdout";
+            appendLog(msg.data, streamClass);
+        }
+
+        function handleExitMessage(msg) {
+            const stage = msg.stage || "process";
+            appendLog(`\n--- ${stage} exited with code ${msg.code}${msg.signal ? ` (signal: ${msg.signal})` : ""} ---\n`, "log-exit");
+        }
+
+        function enableStdin() {
+            stdinInput.disabled = false;
+            sendInputBtn.disabled = false;
+            stdinInput.focus();
+        }
+
+        function disableStdin() {
+            stdinInput.disabled = true;
+            sendInputBtn.disabled = true;
+        }
+
+        function resetControls() {
+            runBtn.disabled = false;
+            stopBtn.disabled = true;
+            disableStdin();
+            currentExecutionId = null;
+        }
+
+        // Send Runtime Stdin Input
+        function sendStdin() {
+            const inputVal = stdinInput.value;
+            if (!socket || socket.readyState !== WebSocket.OPEN) {
+                appendLog("Error: Not connected to running process.\n", "log-error");
+                return;
+            }
+
+            // Display in terminal what user typed
+            appendLog(inputVal + "\n", "log-input-echo");
+
+            const inputMsg = {
+                type: "INPUT",
+                executionId: currentExecutionId,
+                data: inputVal + "\n"
+            };
+
+            socket.send(JSON.stringify(inputMsg));
+            stdinInput.value = "";
+            stdinInput.focus();
+        }
+
+        sendInputBtn.addEventListener("click", sendStdin);
+
+        stdinInput.addEventListener("keydown", (e) => {
+            if (e.key === "Enter") {
+                e.preventDefault();
+                sendStdin();
+            }
+        });
+
+        // Stop / Cancel Execution
+        stopBtn.addEventListener("click", () => {
+            if (socket && socket.readyState === WebSocket.OPEN) {
+                appendLog("\nRequesting process termination...\n", "log-status");
+                const cancelMsg = {
+                    type: "CANCEL",
+                    executionId: currentExecutionId
+                };
+                socket.send(JSON.stringify(cancelMsg));
+            }
+            resetControls();
+            setStatus("Stopped", "failed");
+        });
+    </script>
+</body>
+</html>

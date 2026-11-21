@@ -1,0 +1,21 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: backend
+
+compiler:
+  piston:
+    websocket-url: ws://localhost:2004/api/v2/connect
+    # Must be <= PISTON_RUN_TIMEOUT configured in the Piston container.
+    run-timeout: 600000
+  timeout:
+    compile: 10000
+    input-inactivity: 300000
+    maximum-execution: 600000
+    cpu-time: 10000
+  security:
+    max-code-size: 65536
+    max-concurrent-sessions: 50
+    allowed-origins: "*"

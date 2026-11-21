@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Workplace — File System Tester</title>
+    <style>
+        :root{--bg:#08111f;--panel:rgba(18,32,53,.78);--panel2:rgba(26,44,69,.72);--line:rgba(160,190,225,.16);--text:#e8f1ff;--muted:#91a5c1;--blue:#62a9ff;--cyan:#62e0dc;--red:#ff7d8b;--green:#65d6a3;--shadow:0 22px 60px rgba(0,0,0,.28)}
+        *{box-sizing:border-box}body{margin:0;min-height:100vh;color:var(--text);font:14px/1.5 Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,sans-serif;background:radial-gradient(900px 600px at 10% -10%,#183d64 0%,transparent 60%),radial-gradient(800px 500px at 100% 0%,#123e50 0%,transparent 55%),var(--bg)}
+        button,input,textarea,select{font:inherit}button{cursor:pointer;border:1px solid var(--line);border-radius:10px;padding:9px 13px;background:linear-gradient(135deg,rgba(98,169,255,.2),rgba(98,224,220,.12));color:var(--text);transition:.18s}button:hover{border-color:rgba(98,169,255,.55);transform:translateY(-1px)}button:disabled{opacity:.45;cursor:not-allowed;transform:none}.danger{background:rgba(255,125,139,.12);color:#ffabb4}.primary{background:linear-gradient(135deg,#347fd4,#269caa);border-color:transparent}.quiet{background:rgba(255,255,255,.04)}input,textarea,select{width:100%;border:1px solid var(--line);border-radius:10px;background:rgba(4,12,23,.55);color:var(--text);padding:10px 12px;outline:none}input:focus,textarea:focus,select:focus{border-color:var(--blue)}textarea{min-height:240px;resize:vertical;font:13px/1.6 ui-monospace,SFMono-Regular,Consolas,monospace}label{display:block;color:var(--muted);font-size:12px;margin:0 0 6px}.shell{max-width:1440px;margin:auto;padding:26px}.top{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:22px}.brand{display:flex;align-items:center;gap:12px}.logo{width:42px;height:42px;border-radius:13px;display:grid;place-items:center;background:linear-gradient(135deg,#428de4,#40c6c0);font-size:20px;box-shadow:0 10px 30px #2769a455}.brand h1{font-size:18px;margin:0}.brand p{margin:2px 0 0;color:var(--muted);font-size:12px}.status{color:var(--muted);font-size:12px}.layout{display:grid;grid-template-columns:310px minmax(0,1fr);gap:18px}.panel{background:var(--panel);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);backdrop-filter:blur(18px)}.sidebar{padding:18px;min-height:650px}.main{padding:20px;min-height:650px}.section-title{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}.section-title h2,.main h2{font-size:15px;margin:0}.muted{color:var(--muted)}.small{font-size:12px}.stack{display:grid;gap:12px}.row{display:flex;gap:8px;align-items:center}.row>*{min-width:0}.row .grow{flex:1}.auth-tabs{display:flex;gap:8px;margin-bottom:16px}.auth-tabs button{flex:1}.auth-form{display:grid;gap:11px}.divider{height:1px;background:var(--line);margin:18px 0}.tree-head{display:flex;align-items:center;justify-content:space-between;margin:18px 0 10px}.tree{display:grid;gap:5px}.tree-item{display:flex;align-items:center;gap:8px;padding:8px 9px;border-radius:9px;color:#c9d8eb;cursor:pointer;min-width:0}.tree-item:hover,.tree-item.active{background:rgba(98,169,255,.13);color:#fff}.tree-item .name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}.tree-item .id{font-size:10px;color:var(--muted)}.crumb{display:flex;gap:7px;align-items:center;flex-wrap:wrap;color:var(--muted);font-size:12px;margin:12px 0 18px}.crumb button{padding:3px 7px;font-size:12px}.toolbar{display:flex;gap:8px;flex-wrap:wrap}.content-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}.content-head p{margin:4px 0;color:var(--muted);font-size:12px}.items{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px;margin-top:16px}.item{padding:14px;border:1px solid var(--line);background:rgba(255,255,255,.035);border-radius:13px;cursor:pointer;min-width:0}.item:hover{border-color:rgba(98,169,255,.5);background:rgba(98,169,255,.08)}.item .ico{font-size:23px;margin-bottom:9px}.item .title{font-weight:600;overflow-wrap:anywhere}.item .meta{font-size:11px;color:var(--muted);margin-top:3px}.empty{padding:42px 16px;text-align:center;border:1px dashed var(--line);border-radius:14px;color:var(--muted);margin-top:16px}.editor{margin-top:18px;padding:16px;border:1px solid var(--line);border-radius:14px;background:rgba(3,10,19,.35)}.editor-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px}.editor-head h3{font-size:14px;margin:0}.editor-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.field{display:grid;gap:6px}.full{grid-column:1/-1}.notice{margin-top:12px;padding:10px 12px;border-radius:10px;background:rgba(98,169,255,.1);color:#b9d9ff;white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px}.notice.error{background:rgba(255,125,139,.1);color:#ffb5bd}.notice.success{background:rgba(101,214,163,.1);color:#a8f0ce}.hidden{display:none!important}.modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.6);display:grid;place-items:center;padding:18px;z-index:5}.modal{width:min(520px,100%);padding:20px;background:#102039;border:1px solid var(--line);border-radius:17px;box-shadow:var(--shadow)}.modal h3{margin:0 0 15px}.modal form{display:grid;gap:12px}.modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:4px}.api-note{font-size:11px;color:var(--muted);line-height:1.6;margin-top:12px}
+        @media(max-width:850px){.layout{grid-template-columns:1fr}.sidebar,.main{min-height:auto}.top{align-items:flex-start;flex-direction:column}.shell{padding:14px}.editor-grid{grid-template-columns:1fr}.full{grid-column:auto}}
+    </style>
+</head>
+<body>
+<div class="shell">
+    <header class="top">
+        <div class="brand"><div class="logo">⌘</div><div><h1>My Workplace</h1><p>Online file system · API testing workspace</p></div></div>
+        <div class="row"><span id="authStatus" class="status">Not authenticated</span><button id="logoutBtn" class="quiet hidden">Logout</button></div>
+    </header>
+
+    <div class="layout">
+        <aside class="panel sidebar">
+            <div id="authPanel">
+                <div class="auth-tabs"><button id="showLogin" class="primary">Login</button><button id="showRegister" class="quiet">Register</button></div>
+                <form id="loginForm" class="auth-form">
+                    <div><label>Email</label><input name="email" type="email" required placeholder="you@example.com"></div>
+                    <div><label>Password</label><input name="password" type="password" required placeholder="Password"></div>
+                    <button class="primary" type="submit">Login</button>
+                </form>
+                <form id="registerForm" class="auth-form hidden">
+                    <div><label>Name</label><input name="name" required placeholder="Your name"></div>
+                    <div><label>Email</label><input name="email" type="email" required placeholder="you@example.com"></div>
+                    <div><label>Password</label><input name="password" type="password" required placeholder="Create password"></div>
+                    <div><label>Gender</label><select name="gender" required><option value="">Select gender</option><option value="MALE">Male</option><option value="FEMALE">Female</option><option value="OTHER">Other</option></select></div>
+                    <button class="primary" type="submit">Create account</button>
+                </form>
+                <div id="authNotice" class="notice hidden"></div>
+                <p class="api-note">Register/login endpoint names are configurable in the JavaScript constants. This page sends cookies using <code>credentials: include</code>.</p>
+            </div>
+
+            <div id="workspacePanel" class="hidden">
+                <div class="section-title"><h2>Explorer</h2><button id="refreshBtn" class="quiet">↻</button></div>
+                <div class="small muted" id="userSummary">Signed in</div>
+                <div class="tree-head"><span class="small muted">FOLDER TREE</span><button id="newRootFolderBtn" class="quiet">+ Folder</button></div>
+                <div id="folderTree" class="tree"></div>
+                <div class="divider"></div>
+                <div class="small muted">Select a folder to view its direct files and subfolders. Click a file to load its content.</div>
+            </div>
+        </aside>
+
+        <main class="panel main">
+            <div class="content-head">
+                <div><h2 id="currentTitle">Welcome</h2><p id="currentSubtitle">Register or login to start testing your file system APIs.</p></div>
+                <div id="folderToolbar" class="toolbar hidden">
+                    <button id="createFolderBtn">+ Folder</button><button id="createFileBtn">+ File</button>
+                    <button id="renameFolderBtn" class="quiet">Rename</button><button id="deleteFolderBtn" class="danger">Delete folder</button>
+                </div>
+            </div>
+            <div id="breadcrumbs" class="crumb"></div>
+            <div id="items" class="items"></div>
+            <div id="emptyState" class="empty">Your folders and files will appear here.</div>
+
+            <section id="fileEditor" class="editor hidden">
+                <div class="editor-head"><h3 id="editorTitle">File editor</h3><div class="toolbar"><button id="saveFileBtn" class="primary">Save changes</button><button id="deleteFileBtn" class="danger">Delete file</button></div></div>
+                <div class="editor-grid">
+                    <div class="field"><label>File name (without extension)</label><input id="editFileName"></div>
+                    <div class="field"><label>Extension</label><input id="editFileExtension" disabled></div>
+                    <div class="field full"><label>File content</label><textarea id="editFileContent" spellcheck="false"></textarea></div>
+                </div>
+            </section>
+            <div id="appNotice" class="notice hidden"></div>
+        </main>
+    </div>
+</div>
+
+<div id="modalBackdrop" class="modal-backdrop hidden">
+    <div class="modal">
+        <h3 id="modalTitle">Create folder</h3>
+        <form id="modalForm">
+            <div id="modalFields"></div>
+            <div class="modal-actions"><button type="button" id="modalCancel" class="quiet">Cancel</button><button type="submit" class="primary">Confirm</button></div>
+        </form>
+    </div>
+</div>
+
+<script>
+    /*
+     * API configuration:
+     * Adjust REGISTER_URL / LOGIN_URL if your authentication controller uses different paths.
+     * The folder/file endpoints below match the endpoints built in this conversation.
+     */
+    const API_BASE = "http://localhost:8080";
+    const REGISTER_URL = "/api/v1/users/register";
+    const LOGIN_URL = "/api/v1/users/login";
+    const API = {
+      createFolder: "/api/v1/folders/create",
+      updateFolder: id => `/api/v1/folders/update/${id}`,
+      deleteFolder: id => `/api/v1/folders/delete/${id}`,
+      folderContents: id => `/api/v1/folders/${id}/contents`,
+      createFile: "/api/v1/files/create",
+      updateFile: id => `/api/v1/files/update/${id}`,
+      deleteFile: id => `/api/v1/files/delete/${id}`,
+      getFile: id => `/api/v1/files/${id}`
+    };
+
+    const state = {
+      user: null,
+      rootFolderId: null,
+      currentFolder: null,
+      breadcrumbs: [],
+      currentFile: null,
+      folders: [],
+      files: []
+    };
+
+    const $ = id => document.getElementById(id);
+    const apiUrl = path => API_BASE + path;
+
+    async function request(path, options = {}) {
+      const response = await fetch(apiUrl(path), {
+        credentials: "include",
+        ...options,
+        headers: { ...(options.body instanceof FormData ? {} : {"Content-Type":"application/json"}), ...(options.headers || {}) }
+      });
+      const raw = await response.text();
+      let data = null;
+      try { data = raw ? JSON.parse(raw) : null; } catch { data = raw; }
+      if (!response.ok) {
+        // Spring Boot may return either a normal error object or ProblemDetail (detail/title).
+        const message = data && typeof data === "object"
+          ? (data.message || data.detail || data.error || data.title || `HTTP ${response.status}`)
+          : (data || raw || `HTTP ${response.status}`);
+        throw new Error(String(message));
+      }
+      return data;
+    }
+    function showNotice(id, message, type="success") {
+      const el = $(id); el.textContent = message; el.className = `notice ${type}`; el.classList.remove("hidden");
+    }
+    function hideNotice(id) { $(id).classList.add("hidden"); }
+    function setAuthenticated(user) {
+      state.user = user;
+      $("authPanel").classList.add("hidden");
+      $("workspacePanel").classList.remove("hidden");
+      $("logoutBtn").classList.remove("hidden");
+      $("authStatus").textContent = user?.email ? `Signed in · ${user.email}` : "Signed in";
+      $("userSummary").textContent = `${user?.name || "User"} · ${user?.email || ""}`;
+    }
+    function clearAuthenticated() {
+      state.user = null; state.rootFolderId = null; state.currentFolder = null; state.currentFile = null;
+      $("authPanel").classList.remove("hidden"); $("workspacePanel").classList.add("hidden");
+      $("logoutBtn").classList.add("hidden"); $("authStatus").textContent = "Not authenticated";
+      $("folderToolbar").classList.add("hidden"); $("fileEditor").classList.add("hidden");
+      $("currentTitle").textContent = "Welcome"; $("currentSubtitle").textContent = "Register or login to start testing your file system APIs.";
+      $("items").innerHTML = ""; $("emptyState").classList.remove("hidden"); $("emptyState").textContent = "Your folders and files will appear here.";
+      $("folderTree").innerHTML = ""; $("breadcrumbs").innerHTML = "";
+    }
+    function switchAuth(mode) {
+      const login = mode === "login";
+      $("loginForm").classList.toggle("hidden", !login);
+      $("registerForm").classList.toggle("hidden", login);
+      $("showLogin").className = login ? "primary" : "quiet";
+      $("showRegister").className = login ? "quiet" : "primary";
+      hideNotice("authNotice");
+    }
+    function getRootFolder(user) {
+      // Expected UserRes field: userFolder (a UserFolder object containing id and folderName).
+      const folder = user?.userFolder || user?.rootFolder || user?.rootFolderRes;
+      return folder && typeof folder === "object" ? folder : null;
+    }
+    function safeText(value) { return String(value ?? ""); }
+
+    async function afterAuth(user) {
+      setAuthenticated(user || {});
+      const root = getRootFolder(user);
+      if (!root || root.id == null) {
+        showNotice("appNotice", "Authentication succeeded, but response did not contain userFolder.id. Check that UserRes returns userFolder with id and folderName.", "error");
+        $("currentTitle").textContent = "Root folder not found";
+        $("currentSubtitle").textContent = "Expected response field: userFolder.id";
+        return false;
+      }
+      state.rootFolderId = root.id;
+      await openFolder(root.id, root.folderName || "MY-WORKPLACE", true);
+      return true;
+    }
+
+    $("showLogin").addEventListener("click", () => switchAuth("login"));
+    $("showRegister").addEventListener("click", () => switchAuth("register"));
+
+    $("loginForm").addEventListener("submit", async e => {
+      e.preventDefault(); hideNotice("authNotice");
+      const body = Object.fromEntries(new FormData(e.currentTarget).entries());
+      try {
+        const user = await request(LOGIN_URL, {method:"POST", body:JSON.stringify(body)});
+        const rootLoaded = await afterAuth(user);
+        if (rootLoaded) {
+          showNotice("appNotice", "Login successful. Root folder loaded.");
+        }
+      } catch(err) { showNotice("authNotice", err.message, "error"); }
+    });
+    $("registerForm").addEventListener("submit", async e => {
+      e.preventDefault(); hideNotice("authNotice");
+      const body = Object.fromEntries(new FormData(e.currentTarget).entries());
+      try {
+        const user = await request(REGISTER_URL, {method:"POST", body:JSON.stringify(body)});
+        const rootLoaded = await afterAuth(user);
+        if (rootLoaded) {
+          showNotice("appNotice", "Registration successful. Root folder loaded.");
+          e.currentTarget.reset();
+        }
+      } catch(err) { showNotice("authNotice", err.message, "error"); }
+    });
+
+    async function openFolder(folderId, folderName, isRoot=false) {
+      hideNotice("appNotice");
+      const data = await request(API.folderContents(folderId));
+      state.currentFolder = {id:data.folderId ?? folderId, name:data.folderName ?? folderName};
+      state.folders = Array.isArray(data.folders) ? data.folders : [];
+      state.files = Array.isArray(data.files) ? data.files : [];
+      state.currentFile = null;
+      $("fileEditor").classList.add("hidden");
+      $("currentTitle").textContent = state.currentFolder.name;
+      $("currentSubtitle").textContent = `Folder ID: ${state.currentFolder.id} · ${state.folders.length} folders · ${state.files.length} files`;
+      $("folderToolbar").classList.remove("hidden");
+      $("renameFolderBtn").disabled = isRoot;
+      $("deleteFolderBtn").disabled = isRoot;
+      if (isRoot) state.breadcrumbs = [{id:state.currentFolder.id,name:state.currentFolder.name}];
+      else {
+        const existing = state.breadcrumbs.findIndex(x => x.id === state.currentFolder.id);
+        if (existing >= 0) state.breadcrumbs = state.breadcrumbs.slice(0, existing+1);
+        else state.breadcrumbs.push({id:state.currentFolder.id,name:state.currentFolder.name});
+      }
+      renderContents(); renderBreadcrumbs(); await renderFolderTree();
+    }
+    function renderContents() {
+      const items = $("items"); items.innerHTML = "";
+      const hasItems = state.folders.length || state.files.length;
+      $("emptyState").classList.toggle("hidden", !!hasItems);
+      if (!hasItems) $("emptyState").textContent = "This folder is empty.";
+      state.folders.forEach(folder => {
+        const el = document.createElement("div"); el.className = "item";
+        el.innerHTML = `<div class="ico">📁</div><div class="title"></div><div class="meta">Folder · ID ${safeText(folder.id)}</div>`;
+        el.querySelector(".title").textContent = folder.folderName;
+        el.addEventListener("click", () => openFolder(folder.id, folder.folderName).catch(err => showNotice("appNotice", err.message, "error")));
+        items.appendChild(el);
+      });
+      state.files.forEach(file => {
+        const el = document.createElement("div"); el.className = "item";
+        const fullName = `${file.fileName || ""}${file.fileExtension ? "."+file.fileExtension.replace(/^\./,"") : ""}`;
+        el.innerHTML = `<div class="ico">📄</div><div class="title"></div><div class="meta">File · ID ${safeText(file.id)}</div>`;
+        el.querySelector(".title").textContent = fullName;
+        el.addEventListener("click", () => loadFile(file.id).catch(err => showNotice("appNotice", err.message, "error")));
+        items.appendChild(el);
+      });
+    }
+    function renderBreadcrumbs() {
+      const el = $("breadcrumbs"); el.innerHTML = "";
+      state.breadcrumbs.forEach((crumb, index) => {
+        if (index) { const sep = document.createElement("span"); sep.textContent = "›"; el.appendChild(sep); }
+        const btn = document.createElement("button"); btn.className = "quiet"; btn.textContent = crumb.name;
+        btn.addEventListener("click", () => openFolder(crumb.id, crumb.name, index===0).catch(err => showNotice("appNotice", err.message, "error")));
+        el.appendChild(btn);
+      });
+    }
+    async function renderFolderTree() {
+      // Render the tree from the root, loading each folder's direct children.
+      const rootId = state.rootFolderId; if (!rootId) return;
+      const tree = $("folderTree"); tree.innerHTML = "";
+      async function addNode(folder, depth, parentEl) {
+        const row = document.createElement("div"); row.className = "tree-item" + (state.currentFolder?.id === folder.id ? " active" : "");
+        row.style.paddingLeft = `${9 + depth*14}px`;
+        row.innerHTML = `<span>📁</span><span class="name"></span><span class="id"></span>`;
+        row.querySelector(".name").textContent = folder.folderName;
+        row.querySelector(".id").textContent = `#${folder.id}`;
+        row.addEventListener("click", () => openFolder(folder.id, folder.folderName, depth===0).catch(err => showNotice("appNotice", err.message, "error")));
+        parentEl.appendChild(row);
+        try {
+          const contents = await request(API.folderContents(folder.id));
+          for (const child of (contents.folders || [])) await addNode(child, depth+1, parentEl);
+        } catch (e) { /* keep the visible node if a nested request fails */ }
+      }
+      const rootName = state.breadcrumbs[0]?.name || "MY-WORKPLACE";
+      await addNode({id:rootId,folderName:rootName},0,tree);
+    }
+
+    function showModal(title, fields, onSubmit) {
+      $("modalTitle").textContent = title; $("modalFields").innerHTML = "";
+      fields.forEach(field => {
+        const wrap = document.createElement("div"); wrap.className = "field";
+        const label = document.createElement("label"); label.textContent = field.label;
+        const input = document.createElement("input"); input.name = field.name; input.required = field.required !== false; input.placeholder = field.placeholder || "";
+        if (field.value !== undefined) input.value = field.value;
+        wrap.append(label,input); $("modalFields").appendChild(wrap);
+      });
+      $("modalBackdrop").classList.remove("hidden");
+      $("modalForm").onsubmit = async e => {
+        e.preventDefault(); const values = Object.fromEntries(new FormData(e.currentTarget).entries());
+        try { await onSubmit(values); $("modalBackdrop").classList.add("hidden"); }
+        catch(err) { showNotice("appNotice",err.message,"error"); }
+      };
+    }
+    $("modalCancel").addEventListener("click", () => $("modalBackdrop").classList.add("hidden"));
+
+    $("createFolderBtn").addEventListener("click", () => showModal("Create subfolder",[
+      {name:"folderName",label:"Folder name",placeholder:"e.g. Photos"}
+    ],async v=>{
+      const q = new URLSearchParams({parentId:state.currentFolder.id,folderName:v.folderName});
+      await request(`${API.createFolder}?${q}`,{method:"POST"});
+      await openFolder(state.currentFolder.id,state.currentFolder.name,state.currentFolder.id===state.rootFolderId);
+      showNotice("appNotice","Folder created successfully.");
+    }));
+    $("newRootFolderBtn").addEventListener("click", () => {
+      if (!state.rootFolderId) return;
+      showModal("Create folder in MY-WORKPLACE",[{name:"folderName",label:"Folder name"}],async v=>{
+        const q = new URLSearchParams({parentId:state.rootFolderId,folderName:v.folderName});
+        await request(`${API.createFolder}?${q}`,{method:"POST"});
+        await openFolder(state.currentFolder.id,state.currentFolder.name,true);
+      });
+    });
+    $("renameFolderBtn").addEventListener("click", () => {
+      if (!state.currentFolder || state.currentFolder.id===state.rootFolderId) return;
+      showModal("Rename folder",[{name:"folderName",label:"New folder name",value:state.currentFolder.name}],async v=>{
+        const q = new URLSearchParams({folderName:v.folderName});
+        await request(`${API.updateFolder(state.currentFolder.id)}?${q}`,{method:"PUT"});
+        await openFolder(state.currentFolder.id,v.folderName);
+        showNotice("appNotice","Folder renamed successfully.");
+      });
+    });
+    $("deleteFolderBtn").addEventListener("click", async () => {
+      if (!state.currentFolder || state.currentFolder.id===state.rootFolderId) return;
+      if (!confirm(`Delete "${state.currentFolder.name}" and all its subfolders/files?`)) return;
+      try {
+        const parent = state.breadcrumbs.length>1 ? state.breadcrumbs[state.breadcrumbs.length-2] : {id:state.rootFolderId,name:"MY-WORKPLACE"};
+        await request(API.deleteFolder(state.currentFolder.id),{method:"DELETE"});
+        await openFolder(parent.id,parent.name,parent.id===state.rootFolderId);
+        showNotice("appNotice","Folder and its contents deleted.");
+      } catch(err) { showNotice("appNotice",err.message,"error"); }
+    });
+    $("createFileBtn").addEventListener("click", () => showModal("Create file",[
+      {name:"fileName",label:"File name (without extension)",placeholder:"Main"},
+      {name:"fileExtension",label:"Extension (without dot)",placeholder:"java"}
+    ],async v=>{
+      const q = new URLSearchParams({folderId:state.currentFolder.id,fileName:v.fileName,fileExtension:v.fileExtension});
+      await request(`${API.createFile}?${q}`,{method:"POST"});
+      await openFolder(state.currentFolder.id,state.currentFolder.name,state.currentFolder.id===state.rootFolderId);
+      showNotice("appNotice","File created successfully.");
+    }));
+
+    async function loadFile(fileId) {
+      const file = await request(API.getFile(fileId));
+      state.currentFile = file;
+      $("fileEditor").classList.remove("hidden");
+      $("editorTitle").textContent = `Editing file · ID ${file.id}`;
+      $("editFileName").value = file.fileName || "";
+      $("editFileExtension").value = file.fileExtension || "";
+      $("editFileContent").value = file.fileContent || "";
+      $("currentSubtitle").textContent = `File ID: ${file.id} · ${file.fileName}.${file.fileExtension || ""}`;
+      showNotice("appNotice",`Loaded ${file.fileName}.${file.fileExtension || ""}`);
+    }
+    $("saveFileBtn").addEventListener("click", async () => {
+      if (!state.currentFile || !state.currentFolder) return;
+      try {
+        // Store the ID before openFolder(), because openFolder() clears state.currentFile.
+        const fileId = state.currentFile.id;
+        const folderId = state.currentFolder.id;
+        const folderName = state.currentFolder.name;
+        const q = new URLSearchParams({fileName:$("editFileName").value});
+
+        // Backend method accepts fileName as @RequestParam and raw text as @RequestBody.
+        await request(`${API.updateFile(fileId)}?${q}`,{
+          method:"PUT",
+          headers:{"Content-Type":"text/plain"},
+          body:$("editFileContent").value
+        });
+
+        await openFolder(folderId, folderName, folderId === state.rootFolderId);
+        await loadFile(fileId);
+        showNotice("appNotice","File saved successfully.");
+      } catch(err) {
+        showNotice("appNotice",err.message,"error");
+      }
+    });
+    $("deleteFileBtn").addEventListener("click", async () => {
+      if (!state.currentFile || !confirm("Delete this file?")) return;
+      try {
+        await request(API.deleteFile(state.currentFile.id),{method:"DELETE"});
+        $("fileEditor").classList.add("hidden"); state.currentFile=null;
+        await openFolder(state.currentFolder.id,state.currentFolder.name,state.currentFolder.id===state.rootFolderId);
+        showNotice("appNotice","File deleted successfully.");
+      } catch(err) { showNotice("appNotice",err.message,"error"); }
+    });
+    $("refreshBtn").addEventListener("click", () => {
+      if (state.currentFolder) openFolder(state.currentFolder.id,state.currentFolder.name,state.currentFolder.id===state.rootFolderId)
+        .catch(err=>showNotice("appNotice",err.message,"error"));
+    });
+    $("logoutBtn").addEventListener("click", () => {
+      // Client-side logout only; clear the browser's session view.
+      // An HttpOnly cookie can only be cleared by a backend logout endpoint.
+      clearAuthenticated();
+      showNotice("authNotice","Signed out of this page. The HttpOnly cookie remains until it expires or the backend clears it.","error");
+    });
+    switchAuth("login");
+</script>
+</body>
+</html>

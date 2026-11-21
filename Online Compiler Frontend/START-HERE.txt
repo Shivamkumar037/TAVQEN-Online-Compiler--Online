@@ -1,0 +1,16 @@
+TAVQEN FRONTEND - QUICK START (WINDOWS)
+
+IMPORTANT: Open terminal in THIS folder, the folder containing package.json.
+
+1) Verify package.json is here:
+   dir package.json
+
+2) Install packages:
+   npm install
+
+3) Start frontend:
+   npm run dev
+
+4) Open the Local URL shown by Vite (usually http://localhost:5173).
+
+Do NOT run npm commands in a parent folder. This ZIP has package.json at its root.
