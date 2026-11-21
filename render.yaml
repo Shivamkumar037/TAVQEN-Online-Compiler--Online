@@ -2,6 +2,9 @@ services:
   - type: web
     name: tavqen-backend
     runtime: docker
+    region: oregon # Aap apne pasand ka region chun sakte hain (jaise frankfurt ya ohio)
+    plan: free
+    branch: main
     dockerfilePath: ./backend/Dockerfile
     dockerContext: ./backend
     healthCheckPath: /health
