@@ -9,6 +9,7 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -22,6 +23,16 @@ import java.util.Collections;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final MyJWT myJWT;
+
+    // Skip JWT filter for public WebSocket endpoint
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+
+        String path = request.getServletPath();
+
+        return path.equals("/ws/execute")
+                || path.startsWith("/ws/execute/");
+    }
 
     @Override
     protected void doFilterInternal(
@@ -54,6 +65,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                         .setAuthentication(authentication);
 
             } catch (JwtException | IllegalArgumentException ex) {
+
                 SecurityContextHolder.clearContext();
             }
         }
@@ -70,6 +82,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         for (Cookie cookie : cookies) {
+
             if ("accessToken".equals(cookie.getName())) {
                 return cookie.getValue();
             }
