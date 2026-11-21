@@ -8,9 +8,6 @@ import org.springframework.web.socket.config.annotation.EnableWebSocket;
 import org.springframework.web.socket.config.annotation.WebSocketConfigurer;
 import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry;
 
-import java.util.Arrays;
-import java.util.stream.Stream;
-
 @Configuration
 @EnableWebSocket
 public class WebSocketConfig implements WebSocketConfigurer {
@@ -26,37 +23,15 @@ public class WebSocketConfig implements WebSocketConfigurer {
         this.handler = handler;
     }
 
-    // @Override
-    // public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
-
-    //     String[] configuredOrigins = props.getAllowedOrigins()
-    //             .split(",");
-
-    //     String[] frontendOrigins = {
-    //             "http://localhost:5500",
-    //             "http://127.0.0.1:5500",
-    //             "http://localhost:5501",
-    //             "http://127.0.0.1:5501",
-    //             "http://localhost:5173",
-    //             "http://127.0.0.1:5173"
-    //     };
-
-    //     String[] allowedOrigins = Stream.concat(
-    //                     Arrays.stream(configuredOrigins),
-    //                     Arrays.stream(frontendOrigins)
-    //             )
-    //             .map(String::trim)
-    //             .filter(origin -> !origin.isEmpty())
-    //             .distinct()
-    //             .toArray(String[]::new);
-
-    //     registry.addHandler(handler, props.getWebsocketPath())
-    //             .setAllowedOrigins(allowedOrigins);
-    // }
-
     @Override
-public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
-    registry.addHandler(handler, props.getWebsocketPath())
-            .setAllowedOriginPatterns("*");
-}
+    public void registerWebSocketHandlers(
+            WebSocketHandlerRegistry registry
+    ) {
+
+        registry.addHandler(
+                handler,
+                props.getWebsocketPath()
+        ).setAllowedOriginPatterns("*");
+
+    }
 }
