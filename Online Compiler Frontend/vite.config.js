@@ -8,8 +8,8 @@ export default defineConfig({
     port: 5173,
     proxy: {
       // Same-origin dev proxy avoids CORS and allows HttpOnly cookies to work.
-      '/ws/execute': { target: 'ws://localhost:8080', ws: true, changeOrigin: true },
-      '/api': { target: 'http://localhost:8080', changeOrigin: true },
+      '/ws/execute': { target: 'ws://tavqen-backend2.onrender.com', ws: true, changeOrigin: true },
+      '/api': { target: 'https://tavqen-backend2.onrender.com', changeOrigin: true },
     },
   },
 });
